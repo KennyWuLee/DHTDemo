@@ -1,5 +1,8 @@
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.PriorityQueue;
 import java.util.Random;
 
 public class Node {
@@ -12,19 +15,26 @@ public class Node {
 	private NodeInfo nodeInfo;
 	private String address;
 	private ArrayList<Bucket> buckets;
+	private HashMap<String, Node> otherNodes;
 	
-	public Node(String address) {
+	public Node(String address, HashMap<String, Node> otherNodes) {
+		this.otherNodes = otherNodes;
 		this.address = address;
-		Random rand = new Random();
-		nodeId = new byte[20];
-		for (int i = 0; i < nodeId.length; i++) {
-			nodeId[i] = (byte) rand.nextInt(256);
-		}
+		this.nodeId = randomId();
 		buckets = new ArrayList<Bucket>();
 		Bucket b = new Bucket(arrayToBigIntUnsigned(zero), arrayToBigIntUnsigned(max));
 		nodeInfo = new NodeInfo(this.nodeId, address);
 		b.nodes.add(this.nodeInfo);
 		buckets.add(b);
+	}
+	
+	public static byte[] randomId() {
+		Random rand = new Random();
+		byte[] temp = new byte[20];
+		for (int i = 0; i < 20; i++) {
+			temp[i] = (byte) rand.nextInt(256);
+		}
+		return temp;
 	}
 	
 	public static BigInteger arrayToBigIntUnsigned(byte[] num) {
@@ -40,7 +50,7 @@ public class Node {
 		BigInteger idValue = arrayToBigIntUnsigned(id);
 		int bucketIndex =  findBucket(idValue, 0, buckets.size());
 		Bucket b = buckets.get(bucketIndex);
-		if(b.size() < 8) {
+		if(b.size() < maxBucketSize) {
 			b.nodes.add(new NodeInfo(id, address));
 		} else {
 			if(b.nodes.contains(this.nodeInfo)) {
@@ -85,5 +95,22 @@ public class Node {
 			Bucket b = buckets.get(i);
 			System.out.println("bucket" + i + "(" + b.start + ":" + b.end + ")");
 		}
+	}
+	
+	public LinkedList<NodeInfo> findNode(byte[] findId) {
+		NodeInfoComparator comp = new NodeInfoComparator(arrayToBigIntUnsigned(findId));
+		PriorityQueue<NodeInfo> closestNodes = new PriorityQueue<NodeInfo>(10, comp);
+		
+		for (Bucket b : buckets) {
+			for (NodeInfo i : b.nodes) {
+				closestNodes.add(i);
+			}
+		}
+	
+		LinkedList<NodeInfo> results = new LinkedList<>();
+		for(int i = 0; i < 8 && ! closestNodes.isEmpty(); i++) {
+			results.add(closestNodes.poll());
+		}
+		return results;
 	}
 }
