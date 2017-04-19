@@ -1,16 +1,16 @@
 import java.math.BigInteger;
-import java.util.ArrayList;
+import java.util.HashSet;
 
 public class Bucket {
 
-	public ArrayList<NodeInfo> nodes;
+	public HashSet<NodeInfo> nodes;
 	public BigInteger start;
 	public BigInteger end;
 
 	public Bucket(BigInteger start, BigInteger end) {
 		this.start = start;
 		this.end = end;
-		nodes = new ArrayList<NodeInfo>();
+		nodes = new HashSet<NodeInfo>();
 	}
 
 	public int size() {

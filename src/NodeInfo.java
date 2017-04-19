@@ -1,10 +1,16 @@
+import java.net.InetAddress;
+
 public class NodeInfo {
 
 	public byte[] id;
-	public String address;
+	//public String address;
+	public InetAddress ip;
+	public int port;
 
-	public NodeInfo(byte[] id, String address) {
+
+	public NodeInfo(byte[] id, InetAddress ip, int port) {
 		this.id = id;
-		this.address = address;
+		this.ip = ip;
+		this.port = port;
 	}
 }

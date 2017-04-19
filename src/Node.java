@@ -1,6 +1,7 @@
 import java.math.BigInteger;
+import java.net.InetAddress;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.PriorityQueue;
 import java.util.Random;
@@ -13,17 +14,13 @@ public class Node {
 	private final int maxBucketSize = 8;
 	private byte[] nodeId;
 	private NodeInfo nodeInfo;
-	private String address;
 	private ArrayList<Bucket> buckets;
-	private HashMap<String, Node> otherNodes;
 	
-	public Node(String address, HashMap<String, Node> otherNodes) {
-		this.otherNodes = otherNodes;
-		this.address = address;
+	public Node(InetAddress ip, int port) {
 		this.nodeId = randomId();
 		buckets = new ArrayList<Bucket>();
 		Bucket b = new Bucket(arrayToBigIntUnsigned(zero), arrayToBigIntUnsigned(max));
-		nodeInfo = new NodeInfo(this.nodeId, address);
+		nodeInfo = new NodeInfo(this.nodeId, ip, port);
 		b.nodes.add(this.nodeInfo);
 		buckets.add(b);
 	}
@@ -46,24 +43,27 @@ public class Node {
 		return new BigInteger(temp);
 	}
 	
-	public void addNode(byte[] id, String address) {
-		BigInteger idValue = arrayToBigIntUnsigned(id);
+	public void addNode(NodeInfo nodeinfo) {
+		BigInteger idValue = arrayToBigIntUnsigned(nodeInfo.id);
 		int bucketIndex =  findBucket(idValue, 0, buckets.size());
 		Bucket b = buckets.get(bucketIndex);
-		if(b.size() < maxBucketSize) {
-			b.nodes.add(new NodeInfo(id, address));
+		if (b.size() < maxBucketSize) {
+			b.nodes.add(nodeinfo);
 		} else {
-			if(b.nodes.contains(this.nodeInfo)) {
+			if (b.nodes.contains(this.nodeInfo)) {
 				BigInteger middle = b.start.add(b.end).divide(BigInteger.valueOf(2));
 				Bucket b2 = new Bucket(middle.add(BigInteger.ONE), b.end);
 				b.end = middle;
-				for (int i = b.size() - 1; i >= 0; i--) {
-					if (arrayToBigIntUnsigned(b.nodes.get(i).id).compareTo(middle) > 0) {
-						b2.nodes.add(b.nodes.remove(i));
+				Iterator<NodeInfo> it = b.nodes.iterator();
+				while(it.hasNext()) {
+					NodeInfo i = it.next();
+					if(arrayToBigIntUnsigned(i.id).compareTo(middle) > 0) {
+						b2.nodes.add(i);
+						it.remove();
 					}
 				}
 				buckets.add(bucketIndex + 1, b2);
-				addNode(id, address);
+				addNode(nodeinfo);
 			}
 		}
 	}
@@ -72,9 +72,6 @@ public class Node {
 		return this.nodeId;
 	}
 	
-	public String getAddress() {
-		return this.address;
-	}
 
 	//binary search 
 	//start inclusive, end exclusive
@@ -91,7 +88,7 @@ public class Node {
 	}
 	
 	public void printBuckets() {
-		for(int i = 0; i < buckets.size(); i++) {
+		for (int i = 0; i < buckets.size(); i++) {
 			Bucket b = buckets.get(i);
 			System.out.println("bucket" + i + "(" + b.start + ":" + b.end + ")");
 		}
@@ -108,8 +105,12 @@ public class Node {
 		}
 	
 		LinkedList<NodeInfo> results = new LinkedList<>();
-		for(int i = 0; i < 8 && ! closestNodes.isEmpty(); i++) {
-			results.add(closestNodes.poll());
+		for (int i = 0; i < 8 && ! closestNodes.isEmpty(); i++) {
+			NodeInfo n = closestNodes.poll();
+			results.add(n);
+//			if(comp.compare(n, new NodeInfo(findId, "")) == 0) {
+//				return results;
+//			}
 		}
 		return results;
 	}
