@@ -44,6 +44,16 @@ public class Listener implements Runnable {
 				throw new InvalidRequestException();
 			}
 			break;
+		case "find_node":
+			try {
+				System.out.println("recieved find_node request");
+				FindNodeRequest req = gson.fromJson(obj, FindNodeRequest.class);
+				FindNodeResponse res = con.createFindNodeResponse(req.targetId);
+				out.println(gson.toJson(res));
+			} catch (JsonSyntaxException e) {
+				throw new InvalidRequestException();
+			}
+			break;
 		default:
 			break;
 		}

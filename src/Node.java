@@ -1,5 +1,4 @@
 import java.math.BigInteger;
-import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -11,12 +10,12 @@ public class Node {
 	final byte[] max = { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 };
 	final byte[] zero = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 	
-	private final int maxBucketSize = 8;
+	public static final int maxBucketSize = 8;
 	private byte[] nodeId;
 	private NodeInfo nodeInfo;
 	private ArrayList<Bucket> buckets;
 	
-	public Node(InetAddress ip, int port) {
+	public Node(String ip, int port) {
 		this.nodeId = randomId();
 		buckets = new ArrayList<Bucket>();
 		Bucket b = new Bucket(arrayToBigIntUnsigned(zero), arrayToBigIntUnsigned(max));
