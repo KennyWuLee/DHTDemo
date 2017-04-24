@@ -12,6 +12,7 @@ public class Node {
 	final byte[] zero = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 	
 	public static final int maxBucketSize = 8;
+	public static final int maxPeerResponseCount = 100;
 	private byte[] nodeId;
 	private NodeInfo nodeInfo;
 	private ArrayList<Bucket> buckets;
@@ -45,13 +46,12 @@ public class Node {
 		return new BigInteger(temp);
 	}
 	
-	public boolean addNode(NodeInfo nodeinfo) {
+	public synchronized boolean addNode(NodeInfo nodeinfo) {
 		BigInteger idValue = arrayToBigIntUnsigned(nodeInfo.id);
 		int bucketIndex =  findBucket(idValue, 0, buckets.size());
 		Bucket b = buckets.get(bucketIndex);
 		if (b.size() < maxBucketSize) {
-			b.nodes.add(nodeinfo);
-			return true;
+			return b.nodes.add(nodeinfo);
 		} else {
 			if (b.nodes.contains(this.nodeInfo)) {
 				BigInteger middle = b.start.add(b.end).divide(BigInteger.valueOf(2));
@@ -93,11 +93,14 @@ public class Node {
 	public void printBuckets() {
 		for (int i = 0; i < buckets.size(); i++) {
 			Bucket b = buckets.get(i);
-			System.out.println("bucket" + i + "(" + b.start + ":" + b.end + ")");
+			System.out.println("bucket" + i + " size(" + b.size() + ") (" + b.start + ":" + b.end + ")");
+			for (NodeInfo info : b.nodes) {
+				System.out.println("\t " + info.ip + ":" + info.port);
+			}
 		}
 	}
 	
-	public LinkedList<NodeInfo> findNode(byte[] findId) {
+	public synchronized LinkedList<NodeInfo> findNode(byte[] findId) {
 		NodeInfoComparator comp = new NodeInfoComparator(arrayToBigIntUnsigned(findId));
 		PriorityQueue<NodeInfo> closestNodes = new PriorityQueue<NodeInfo>(10, comp);
 		

@@ -1,5 +1,5 @@
 
-public class GetPeersNodesResponse {
+public class GetPeersNodesResponse extends Response {
 	String type;
 	byte[] id;
 	NodeInfo[] nodes;

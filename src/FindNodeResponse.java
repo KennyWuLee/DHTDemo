@@ -1,5 +1,5 @@
 
-public class FindNodeResponse {
+public class FindNodeResponse extends Response {
 	String type;
 	byte[] id;
 	NodeInfo[] nodes;

@@ -1,5 +1,5 @@
 
-public class GetPeersPeersResponse {
+public class GetPeersPeersResponse extends Response {
 	String type;
 	byte[] id;
 	PeerInfo[] values;
@@ -7,6 +7,6 @@ public class GetPeersPeersResponse {
 	public GetPeersPeersResponse(byte[] id) {
 		type = "get_peers_peers";
 		this.id = id;
-		values = new PeerInfo[Node.maxBucketSize];
+		values = new PeerInfo[Node.maxPeerResponseCount];
 	}
 }

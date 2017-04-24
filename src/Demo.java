@@ -1,29 +1,25 @@
-//import java.util.HashMap;
-//
-//public class Demo {
-//	public static void main(String[] args) {
-//		HashMap<String, Node> nodes = new HashMap<String, Node>();
-//		for(int i = 0; i < 100; i++) {
-//			String address = "address" + i;
-//			nodes.put(address, new Node(address, nodes));
-//		}
-//		
-//		//bootstrap
-//		for(int i = 1; i < 100; i++) {
-//			Node n = nodes.get("address" + i);
-//			Node n0 = nodes.get("address0");
-//			n0.addNode(n.getNodeId(), n.getAddress());
-//			n.addNode(n0.getNodeId(), n0.getAddress());
-//		}
-//		
-//		Node n1 = nodes.get("address0");
-//		System.out.println("id: " + Node.arrayToBigIntUnsigned(n1.getNodeId()));
-//		n1.printBuckets();
-//		byte[] target = Node.randomId();
-//		System.out.println("target id: " + Node.arrayToBigIntUnsigned(target));
-//		for(NodeInfo i : n1.findNode(target)) {
-//			System.out.println(Node.arrayToBigIntUnsigned(i.id) + " " + i.address);
-//			System.out.println(Node.arrayToBigIntUnsigned(target).and(Node.arrayToBigIntUnsigned(i.id).abs()));
-//		}
-//	}
-//}
+import java.util.Scanner;
+
+public class Demo {
+	public static void main(String[] args) {
+		//int port = Integer.parseInt(args[0]);
+		int port = 5234;
+		PeerInfo peerInfo = new PeerInfo();
+		//peerInfo.address = args[1];
+		peerInfo.address = "testaddress";
+		peerInfo.port = 1234;
+		
+		Connection con = new Connection("127.0.0.1", port, peerInfo);
+		
+		Scanner scan = new Scanner(System.in);
+		while(scan.hasNext()) {
+			switch(scan.nextLine()) {
+			case "info":
+				con.info();
+				break;
+			default:
+				break;
+			}
+		}
+	}
+}
