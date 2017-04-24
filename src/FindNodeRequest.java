@@ -1,12 +1,9 @@
 
 public class FindNodeRequest extends Request {
-	String type;
-	byte[] id;
 	byte[] targetId;
 	
-	public FindNodeRequest(byte[] id, byte[] targetId) {
-		this.id = id;
+	public FindNodeRequest(byte[] id, byte[] targetId, int port) {
+		super("find_node", id, port);
 		this.targetId = targetId;
-		type = "find_node";
 	}
 }

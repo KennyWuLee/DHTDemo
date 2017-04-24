@@ -1,12 +1,9 @@
 
 public class GetPeersRequest extends Request {
-	String type;
-	byte[] id;
 	byte[] info_hash;
 	
-	public GetPeersRequest(byte[] id, byte[] info_hash) {
-		this.type = "get_peers";
-		this.id = id;
+	public GetPeersRequest(byte[] id, byte[] info_hash, int port) {
+		super("get_peers", id, port);
 		this.info_hash = info_hash;
 	}
 }

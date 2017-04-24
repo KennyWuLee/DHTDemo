@@ -46,12 +46,14 @@ public class Node {
 		return new BigInteger(temp);
 	}
 	
-	public synchronized boolean addNode(NodeInfo nodeinfo) {
-		BigInteger idValue = arrayToBigIntUnsigned(nodeInfo.id);
+	public synchronized boolean addNode(NodeInfo targetNodeInfo) {
+		System.out.println("adding node" + targetNodeInfo.port);
+		BigInteger idValue = arrayToBigIntUnsigned(targetNodeInfo.id);
 		int bucketIndex =  findBucket(idValue, 0, buckets.size());
+		System.out.println("adding node" + targetNodeInfo.port + "into bucket " + bucketIndex);
 		Bucket b = buckets.get(bucketIndex);
 		if (b.size() < maxBucketSize) {
-			return b.nodes.add(nodeinfo);
+			return b.nodes.add(targetNodeInfo);
 		} else {
 			if (b.nodes.contains(this.nodeInfo)) {
 				BigInteger middle = b.start.add(b.end).divide(BigInteger.valueOf(2));
@@ -66,7 +68,7 @@ public class Node {
 					}
 				}
 				buckets.add(bucketIndex + 1, b2);
-				return addNode(nodeinfo);
+				return addNode(targetNodeInfo);
 			}
 		}
 		return false;
@@ -76,10 +78,14 @@ public class Node {
 		return this.nodeId;
 	}
 	
+	public NodeInfo getNodeInfo() {
+		return this.nodeInfo;
+	}
+	
 	//binary search 
 	//start inclusive, end exclusive
 	private int findBucket(BigInteger id, int startIndex, int endIndex) {
-		int middleIndex = (startIndex + endIndex) / 2;
+		int middleIndex = (startIndex + endIndex)  / 2;
 		Bucket b = buckets.get(middleIndex);
 		if (id.compareTo(b.start) < 0) {
 			return findBucket(id, startIndex, middleIndex);
@@ -95,7 +101,7 @@ public class Node {
 			Bucket b = buckets.get(i);
 			System.out.println("bucket" + i + " size(" + b.size() + ") (" + b.start + ":" + b.end + ")");
 			for (NodeInfo info : b.nodes) {
-				System.out.println("\t " + info.ip + ":" + info.port);
+				System.out.println("\t " + info.ip + ":" + info.port + "  " + arrayToBigIntUnsigned(info.id));
 			}
 		}
 	}

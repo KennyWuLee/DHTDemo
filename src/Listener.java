@@ -36,9 +36,9 @@ public class Listener implements Runnable {
 		switch (obj.get("type").getAsString()) {
 		case "ping":
 			try {
-				System.out.println("recieved ping request");
+				con.log("recieved ping request");
 				PingRequest req = gson.fromJson(obj, PingRequest.class);
-				PingResponse res = con.createPingResponse(req, clientSocket.getInetAddress().toString(), clientSocket.getPort());
+				PingResponse res = con.createPingResponse(req, clientSocket.getInetAddress().toString().replaceAll("/", ""), req.port);
 				out.println(gson.toJson(res));
 			} catch (JsonSyntaxException e) {
 				throw new InvalidRequestException();
@@ -46,9 +46,9 @@ public class Listener implements Runnable {
 			break;
 		case "find_node":
 			try {
-				System.out.println("recieved find_node request");
+				con.log("recieved find_node request");
 				FindNodeRequest req = gson.fromJson(obj, FindNodeRequest.class);
-				FindNodeResponse res = con.createFindNodeResponse(req, clientSocket.getInetAddress().toString(), clientSocket.getPort());
+				FindNodeResponse res = con.createFindNodeResponse(req, clientSocket.getInetAddress().toString().replaceAll("/", ""), req.port);
 				out.println(gson.toJson(res));
 			} catch (JsonSyntaxException e) {
 				throw new InvalidRequestException();
@@ -56,9 +56,9 @@ public class Listener implements Runnable {
 			break;
 		case "get_peers":
 			try {
-				System.out.println("recieved get_peers request");
+				con.log("recieved get_peers request");
 				GetPeersRequest req = gson.fromJson(obj, GetPeersRequest.class);
-				Response res = con.createGetPeersResponse(req, clientSocket.getInetAddress().toString(), clientSocket.getPort());
+				Response res = con.createGetPeersResponse(req, clientSocket.getInetAddress().toString().replaceAll("/", ""), req.port);
 				out.println(gson.toJson(res));
 			} catch (JsonSyntaxException e) {
 				throw new InvalidRequestException();
@@ -66,9 +66,9 @@ public class Listener implements Runnable {
 			break;
 		case "announce_peer":
 			try {
-				System.out.println("recieved annouce_peer request");
+				con.log("recieved annouce_peer request");
 				AnnouncePeerRequest req = gson.fromJson(obj, AnnouncePeerRequest.class);
-				Response res = con.createAnnouncePeerResponse(req, clientSocket.getInetAddress().toString(), clientSocket.getPort());
+				Response res = con.createAnnouncePeerResponse(req, clientSocket.getInetAddress().toString().replaceAll("/", ""), req.port);
 				out.println(gson.toJson(res));
 			} catch (JsonSyntaxException e) {
 				throw new InvalidRequestException();
@@ -85,22 +85,20 @@ public class Listener implements Runnable {
 			ServerSocket serverSocket = new ServerSocket(port);
 			while (true) {
 				Socket clientSocket = serverSocket.accept();
-				System.out.println("connection");
 
 				try {
 					handleRequest(clientSocket);
 				} catch (IOException e) {
-					System.out.println("ioexception");
+					con.log("ioexception");
 				} catch (InvalidRequestException e) {
-					System.out.println("invalid request");
+					con.log("invalid request");
 					e.printStackTrace();
 				}
 				
 				clientSocket.close();
-				System.out.println("closed connection");
 			}
 		} catch (IOException e) {
-			System.out.println("ioexception");
+			con.log("ioexception");
 		}
 	}
 
