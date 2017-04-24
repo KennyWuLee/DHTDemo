@@ -1,5 +1,5 @@
 
-public class FindNodeRequest {
+public class FindNodeRequest extends Request {
 	String type;
 	byte[] id;
 	byte[] targetId;

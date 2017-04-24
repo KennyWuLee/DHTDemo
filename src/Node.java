@@ -1,5 +1,6 @@
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.PriorityQueue;
@@ -14,9 +15,11 @@ public class Node {
 	private byte[] nodeId;
 	private NodeInfo nodeInfo;
 	private ArrayList<Bucket> buckets;
+	private HashMap<Byte[], LinkedList<PeerInfo>> peers;
 	
 	public Node(String ip, int port) {
 		this.nodeId = randomId();
+		peers = new HashMap<Byte[], LinkedList<PeerInfo>>();
 		buckets = new ArrayList<Bucket>();
 		Bucket b = new Bucket(arrayToBigIntUnsigned(zero), arrayToBigIntUnsigned(max));
 		nodeInfo = new NodeInfo(this.nodeId, ip, port);
@@ -42,12 +45,13 @@ public class Node {
 		return new BigInteger(temp);
 	}
 	
-	public void addNode(NodeInfo nodeinfo) {
+	public boolean addNode(NodeInfo nodeinfo) {
 		BigInteger idValue = arrayToBigIntUnsigned(nodeInfo.id);
 		int bucketIndex =  findBucket(idValue, 0, buckets.size());
 		Bucket b = buckets.get(bucketIndex);
 		if (b.size() < maxBucketSize) {
 			b.nodes.add(nodeinfo);
+			return true;
 		} else {
 			if (b.nodes.contains(this.nodeInfo)) {
 				BigInteger middle = b.start.add(b.end).divide(BigInteger.valueOf(2));
@@ -62,16 +66,16 @@ public class Node {
 					}
 				}
 				buckets.add(bucketIndex + 1, b2);
-				addNode(nodeinfo);
+				return addNode(nodeinfo);
 			}
 		}
+		return false;
 	}
 	
 	public byte[] getNodeId() {
 		return this.nodeId;
 	}
 	
-
 	//binary search 
 	//start inclusive, end exclusive
 	private int findBucket(BigInteger id, int startIndex, int endIndex) {
@@ -112,5 +116,12 @@ public class Node {
 //			}
 		}
 		return results;
+	}
+	
+	public LinkedList<PeerInfo> getPeers(byte[] info_hash) {
+		if (peers.containsKey(info_hash)) {
+			return peers.get(info_hash);
+		}
+		return null;
 	}
 }

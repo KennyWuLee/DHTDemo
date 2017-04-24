@@ -55,7 +55,7 @@ public class Listener implements Runnable {
 			}
 			break;
 		default:
-			break;
+			throw new InvalidRequestException();
 		}
 	}
 

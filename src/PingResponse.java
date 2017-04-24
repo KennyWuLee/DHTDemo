@@ -1,5 +1,5 @@
 
-public class PingResponse {
+public class PingResponse extends Response {
 	String type;
 	byte[] id;
 	

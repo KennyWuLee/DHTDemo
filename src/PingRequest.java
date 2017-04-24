@@ -1,5 +1,5 @@
 
-public class PingRequest {
+public class PingRequest extends Request {
 	String type;
 	byte[] id;
 	
