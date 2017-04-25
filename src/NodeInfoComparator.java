@@ -11,10 +11,9 @@ public class NodeInfoComparator implements Comparator<NodeInfo> {
 
 	@Override
 	public int compare(NodeInfo o1, NodeInfo o2) {
-		BigInteger dist1 = findId.and(Node.arrayToBigIntUnsigned(o1.id)).abs();
-		BigInteger dist2 = findId.and(Node.arrayToBigIntUnsigned(o2.id)).abs();
+		BigInteger dist1 = findId.xor(Node.arrayToBigIntUnsigned(o1.id)).abs();
+		BigInteger dist2 = findId.xor(Node.arrayToBigIntUnsigned(o2.id)).abs();
 		
 		return dist1.compareTo(dist2);
 	}
-
 }

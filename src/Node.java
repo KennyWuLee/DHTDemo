@@ -1,5 +1,6 @@
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -16,11 +17,11 @@ public class Node {
 	private byte[] nodeId;
 	private NodeInfo nodeInfo;
 	private ArrayList<Bucket> buckets;
-	private HashMap<Byte[], LinkedList<PeerInfo>> peers;
+	private HashMap<String, LinkedList<PeerInfo>> peers;
 	
 	public Node(String ip, int port) {
 		this.nodeId = randomId();
-		peers = new HashMap<Byte[], LinkedList<PeerInfo>>();
+		peers = new HashMap<String, LinkedList<PeerInfo>>();
 		buckets = new ArrayList<Bucket>();
 		Bucket b = new Bucket(arrayToBigIntUnsigned(zero), arrayToBigIntUnsigned(max));
 		nodeInfo = new NodeInfo(this.nodeId, ip, port);
@@ -47,10 +48,8 @@ public class Node {
 	}
 	
 	public synchronized boolean addNode(NodeInfo targetNodeInfo) {
-		System.out.println("adding node" + targetNodeInfo.port);
 		BigInteger idValue = arrayToBigIntUnsigned(targetNodeInfo.id);
 		int bucketIndex =  findBucket(idValue, 0, buckets.size());
-		System.out.println("adding node" + targetNodeInfo.port + "into bucket " + bucketIndex);
 		Bucket b = buckets.get(bucketIndex);
 		if (b.size() < maxBucketSize) {
 			return b.nodes.add(targetNodeInfo);
@@ -108,29 +107,36 @@ public class Node {
 	
 	public synchronized LinkedList<NodeInfo> findNode(byte[] findId) {
 		NodeInfoComparator comp = new NodeInfoComparator(arrayToBigIntUnsigned(findId));
-		PriorityQueue<NodeInfo> closestNodes = new PriorityQueue<NodeInfo>(10, comp);
+		LinkedList<NodeInfo> top8 = new LinkedList<NodeInfo>();
 		
 		for (Bucket b : buckets) {
 			for (NodeInfo i : b.nodes) {
-				closestNodes.add(i);
+				if(top8.size() < maxBucketSize || comp.compare(i, top8.getLast()) < 0) {
+					top8.add(i);
+					top8.sort(comp);
+					if(top8.size() > maxBucketSize) {
+						top8.removeLast();
+					}
+				}
 			}
 		}
-	
-		LinkedList<NodeInfo> results = new LinkedList<>();
-		for (int i = 0; i < 8 && ! closestNodes.isEmpty(); i++) {
-			NodeInfo n = closestNodes.poll();
-			results.add(n);
-//			if(comp.compare(n, new NodeInfo(findId, "")) == 0) {
-//				return results;
-//			}
-		}
-		return results;
+		
+		return top8;
 	}
 	
 	public LinkedList<PeerInfo> getPeers(byte[] info_hash) {
-		if (peers.containsKey(info_hash)) {
-			return peers.get(info_hash);
+		String key = Arrays.toString(info_hash);
+		if (peers.containsKey(key)) {
+			return peers.get(key);
 		}
 		return null;
+	}
+
+	public void addPeer(byte[] info_hash, PeerInfo peer) {
+		String key = Arrays.toString(info_hash);
+		if (! peers.containsKey(key)) {
+			peers.put(key, new LinkedList<PeerInfo>());
+		}
+		peers.get(key).add(peer);
 	}
 }

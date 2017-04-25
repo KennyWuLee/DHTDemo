@@ -3,8 +3,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
-import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -131,14 +131,15 @@ public class Connection {
 		return r;
 	}
 
-	public AnnouncePeerRequest createAnnouncePeerRequest() {
-		AnnouncePeerRequest r = new AnnouncePeerRequest(node.getNodeId(), peerInfo, port);
+	public AnnouncePeerRequest createAnnouncePeerRequest(byte[] info_hash) {
+		AnnouncePeerRequest r = new AnnouncePeerRequest(node.getNodeId(), info_hash, peerInfo, port);
 		return r;
 	}
 
 	public AnnouncePeerResponse createAnnouncePeerResponse(AnnouncePeerRequest request, String ip, int remotePort) {
 		NodeInfo nodeInfo = new NodeInfo(request.id, ip, remotePort);
 		node.addNode(nodeInfo);
+		node.addPeer(request.info_hash, request.peer);
 		AnnouncePeerResponse r = new AnnouncePeerResponse(node.getNodeId());
 		return r;
 	}
@@ -175,6 +176,68 @@ public class Connection {
 				}
 			}
 		}
+	}
+	
+	public HashSet<PeerInfo> announce(byte[] info_hash) {
+		HashSet<NodeInfo> queried = new HashSet<NodeInfo>();
+		NodeInfoComparator comp = new NodeInfoComparator(Node.arrayToBigIntUnsigned(info_hash));
+		LinkedList<NodeInfo> top8 = node.findNode(info_hash);
+		
+		top8.sort(comp);
+		
+		while (! queried.containsAll(top8)) {
+			NodeInfo unqueried = null;
+			Iterator<NodeInfo> it = top8.iterator();
+			while(unqueried == null && it.hasNext()) {
+				NodeInfo i = it.next();
+				if(! queried.contains(i)) {
+					unqueried = i;
+				}
+			}
+			if(unqueried != null) {
+				try {
+					FindNodeRequest r = createFindNodeRequest(info_hash);
+					FindNodeResponse res = (FindNodeResponse) makeRequest(unqueried.ip, unqueried.port, r);
+					for (NodeInfo result : res.nodes) {
+						node.addNode(result);
+						if (result != null && ! top8.contains(result)) {
+							top8.add(result);
+						}
+					}
+					queried.add(unqueried);
+				} catch (IOException | InvalidResponseException e) {
+					System.out.println("error sending find_node");
+				}
+			}
+			top8.sort(comp);
+			while(top8.size() > Node.maxBucketSize) {
+				top8.removeLast();
+			}
+		}
+		
+		HashSet<PeerInfo> results = new HashSet<PeerInfo>();
+		for (NodeInfo i : top8) {
+			try {
+				GetPeersRequest req = createGetPeersRequest(info_hash);
+				Response res = makeRequest(i.ip, i.port, req);
+				if(res instanceof GetPeersPeersResponse) {
+					for (PeerInfo pInfo : ((GetPeersPeersResponse)res).values) {
+						if (pInfo != null) {
+							results.add(pInfo);
+						}
+					}
+				}
+				try {
+					AnnouncePeerRequest annouceReq = createAnnouncePeerRequest(info_hash);
+					makeRequest(i.ip, i.port, annouceReq);
+				} catch (IOException | InvalidResponseException e) {
+					System.out.println("error sending announce_peer Request");
+				}
+			} catch (IOException | InvalidResponseException e) {
+				System.out.println("error sending getPeer Request");
+			}
+		}
+		return results;
 	}
 
 	public void log(String s) {
